@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Jquery Game</title>
+	  <meta charset="utf-8">
+	  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+	  <!-- Mobile support -->
+	  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+	  <!-- Material Design fonts -->
+	  <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Roboto:300,400,500,700" type="text/css">
+	  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+	  <!-- Bootstrap -->
+	  <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+
+	  <!-- Bootstrap Material Design -->
+
+	  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-material-design/0.5.9/css/ripples.css" rel="stylesheet">
+	   <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-material-design/0.5.9/css/bootstrap-material-design.css" rel="stylesheet">
+
+
+	  <!-- Dropdown.js -->
+	  <link href="//cdn.rawgit.com/FezVrasta/dropdown.js/master/jquery.dropdown.css" rel="stylesheet">
+	  <!-- jQuery -->
+  		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+		<style>
+		th,td{
+			text-align:right;
+		}
+		.game{
+			position: relative;
+			width: 540px;
+			height: 600px;
+			border: 1px solid black;
+			padding: 0;
+			margin:0;
+			background-image: url('images/background.jpg');
+			background-size: auto 600px;
+			z-index:1;
+		}
+		.box{
+			display:inline-block;
+			position:absolute;
+			height:110px;
+			width:80px;
+			background-image: url('images/object.png');
+			background-size:80px 110px;
+			background-repeat: no-repeat;
+			padding: 0;
+			margin: 0;
+			top: 470px;
+			left: 234.5px;
+		}
+		.obstacle{
+			display:inline-block;
+			position:absolute;
+			height:60px;
+			width:60px;
+			background-size:60px 60px;
+		}
+		#obstacle1{
+			top: 0px;
+			left: 45px;	
+			opacity:0;
+
+		}#obstacle2{
+			top: 0px;
+			left: 245px;
+			opacity:0;
+		}#obstacle3{
+			top: 0px;
+			left: 445px;
+			opacity:0;
+		}
+		.heartfull{
+			background-image:url('images/heartfull.png');
+			position:absolute;
+			height:40px;
+			width:40px;
+			display:inline-block;
+			background-size: 40px 40px;
+		}
+		#heart1{
+			left:70%;
+			top:5px;	
+		}
+		#heart2
+		{
+			left:80%;	
+			top:5px;
+		}
+		#heart3{
+			left:90%;
+			top:5px;
+
+		}
+		.spin{
+		    -webkit-animation-name: spinnerRotate;
+		    -webkit-animation-duration: 5s;
+		    -webkit-animation-iteration-count: infinite;
+		    -webkit-animation-timing-function: linear;
+		}
+		@-webkit-keyframes spinnerRotate{
+		    from{-webkit-transform:rotate(0deg);}
+		    to{-webkit-transform:rotate(360deg);}
+		}
+		.score
+		{
+			top:0;
+			left:30;
+			margin:9px;
+			font-size:42px;
+			position:absolute;
+			font-style:bold;
+			color:white;
+		}
+		</style>
+	</head>
+	<?include("connectToDB.inc.php");?>
+	<body>
+	<script>
+	//move trashbin !
+	//collision between box !
+	//constant obstacles appear from three spot random math.rand
+	//obstacles fall until they hit the ground
+	//if ground(obstacle) colision, life lost
+	//if went inside trash can(obstacle), points
+
+		// global variable declarations
+		var score;
+		var point = 0;
+		var i = 0;
+		var speed;
+		var pause;
+		var itemFade;
+		var difficulty;
+
+		$(document).ready(function(){
+
+			function modal(data){
+				if(data.confirm=="true"){
+					 $('#myModal').modal('show');
+					$("#message").html("<p>" + data.message + "</p>");
+					$("#title").html("<h2 class='text-success'>Entry Has Been Submitted</h2>");
+				}
+			}
+
+			function dynamicTable(){
+				$("#dynamicTable").load("dynamicTable.php");
+			}	
+
+			dynamicTable();
+
+			function easy(){
+				$('#easy').on('click', function(){
+					$('#easy').addClass("active");
+					$('#medium').removeClass("active");		
+					$('#hard').removeClass("active");				
+				});
+			}
+			function medium(){
+				$('#medium').on('click', function(){
+					$('#medium').addClass("active");
+					$('#easy').removeClass("active");		
+					$('#hard').removeClass("active");				
+				});
+			}
+			function hard(){
+				$('#hard').on('click', function(){
+					$('#hard').addClass("active");
+					$('#medium').removeClass("active");		
+					$('#easy').removeClass("active");				
+				});
+			}
+			easy();
+			medium();
+			hard();
+
+			function heartAdd(){
+				$('#heart1, #heart2, #heart3').addClass("heartfull");
+			}
+
+			function heartRemove(){
+				++i;
+				if (i >3){
+					i=1;
+				}
+				$('#heart'+i+'').removeClass("heartfull");
+			}
+
+			function checkLose(){				
+				score ="false";
+			}
+			//launches the food!
+			function triggerGame(){
+				$('#btn').on('click', function(){
+
+					if($('#easy').hasClass('active')){
+						speed = 1000;
+						pause = 1400;
+						itemFade = 354;	
+						difficulty = 0;
+					}
+					else if($('#medium').hasClass('active')){
+						speed = 750;
+						pause = 1050;
+						itemFade = 265.5;	
+						difficulty = 1;
+					}
+					else if($('#hard').hasClass('active')){
+						speed = 500;
+						pause = 700;
+						itemFade = 127;
+						difficulty = 2;	
+					}else{
+						$('#myModal').modal('show');
+						$('#title').html("<p class='text-danger'>ERROR</p>")
+						$('#message').html("Please select a difficulty!");
+						return false;
+					}
+					heartAdd();
+					point=0;
+					$('#btn').attr("disabled", "disabled");				
+
+					function obstacleFall(){
+						//randomize obstacles	
+						function randomize(){
+							var i =  Math.floor(Math.random() * 3) + 1;
+							var imagenum =  Math.floor(Math.random() * 5) + 1;
+							$obstacle = $('#obstacle'+i);
+							$obstacle.css({opacity:1});
+							if (imagenum == 5) { var theObjClass = "bomb"; }
+							$obstacle.css("background-image", "url(images/obstacle"+imagenum+".png)").addClass(theObjClass);
+						}
+
+						function GiveBombClass(){
+							if($obstacle.hasClass('bomb')){
+								//console.log('A bomb!');
+									checkCollision2();
+								$obstacle.removeClass('bomb');
+							}else{
+								bomb = '';
+							}
+						}
+
+						randomize();
+						
+						//animate the objects falling
+						var newpos = $obstacle.position();
+						ypos = newpos.top;	
+						$obstacle.animate({
+							top: [ypos + 460, 'linear'],
+						}, speed, function(){	
+							//console.log('touchdown');
+							
+							checkLose();
+
+							checkCollision();
+
+							GiveBombClass();
+
+
+							$obstacle.fadeTo(150,0);
+							//$obstacle.css({top:0});
+							setTimeout( function(){
+							    $obstacle.css({top:0});
+							},itemFade);
+
+							if(score == "false"){
+
+								var form="<form class='form-vertical text-center' id='leaderboard'>\
+									<fieldset>\
+										<input type='hidden' name='bool' value='true'></input>\
+										<div class='form-group'>\
+										<input type='text' class='form-control' name='name' placeholder='Enter Your Name' required></input>\
+										</div>\
+										<input type='submit' name='btn' class='btn btn-raised' value='Submit!'></input>\
+										<input name='difficulty' type='hidden' value='"+difficulty+"'></input>\
+										<input name='score' type='hidden' value='"+point+"'></input>\
+									</fieldset>\
+								</form>";
+								$('#output').html(point);	
+								heartRemove();
+								if(!$('#heart3').hasClass('heartfull')){
+									$('#myModal').modal('show');
+									$("#title").html("<h2 class='text-center text-success'>Submit Your Score?</h2>");
+									$('#message').html(form);
+
+									$("#leaderboard").submit(function(e){
+										e.preventDefault();
+										$.ajax({
+											url:"data.php",
+											method: "POST",
+											data:$('#leaderboard').serialize(),
+											dataType:'json',
+											success: function(data){
+												setTimeout(function(){
+													console.log('success');	
+													modal(data);		
+													dynamicTable();	
+												},200);
+											}
+										});
+									});
+
+									$('#btn').removeAttr("disabled");		
+									clearInterval(gameLoop);
+								}
+							}else if(score == "true"){
+								$('#output').html(point);
+							}
+						})	
+					};
+					//obstacleFall();
+					
+					var gameLoop = setInterval(obstacleFall,pause);
+				});
+			}
+	
+			function checkCollision(){
+				if (($("#box").position().left + $("#box").width())  >= $($obstacle).position().left && $("#box").position().left <= ($($obstacle).position().left + $($obstacle).width())
+					&& $("#box").position().top >= ($($obstacle).position().top - $("#box").height())  && $("#box").position().top <= ($($obstacle).position().top  + $($obstacle).height())) {
+					score = "true";
+					point = point + 100;
+				}
+			}
+
+			function checkCollision2(){
+				if (($("#box").position().left + $("#box").width())  >= $($(".bomb")).position().left && $("#box").position().left <= ($($(".bomb")).position().left + $($(".bomb")).width())
+					&& $("#box").position().top >= ($($(".bomb")).position().top - $("#box").height())  && $("#box").position().top <= ($($(".bomb")).position().top  + $($(".bomb")).height())) {
+					$('.bomb').css("background-image", "url(images/explosion.gif)");
+					score = "false";
+					point = point - 100;
+
+					//console.log('the bomb is caught!');
+				}else{
+					//console.log('the bomb dropped!');
+					score = "true";
+					point = point + 100;
+				}
+			}
+			
+			triggerGame();
+
+
+			//controls for moving the trashcan
+			var xpos;
+			$(document).keypress(function(event){
+				var e = event || evt; // for trans-browser compatibility
+				var charCode = event.which || event.keyCode;
+				var c = String.fromCharCode(charCode);  // works for IE and real browsers
+				if (charCode == "97") {				
+					var pos = $("#box").position();
+					xpos = pos.left;
+					if(xpos == 234.5 || xpos == 434.5 ){						
+						$("#box").animate({
+							left: xpos - 200,
+						}, 150, function() {
+							// Animation complete.
+						});
+
+					}
+				}	
+				if (charCode == "100") {
+					var pos = $("#box").position();
+					xpos = pos.left;
+					if(xpos == 234.5 || xpos == 34.5 ){
+						$("#box").animate({
+							left: xpos + 200,
+						}, 150, function() {
+							// Animation complete.
+						});
+					}
+				}		
+			});
+		});
+
+	</script>
+	<div class='navbar navbar-info'>
+		<div class='container-fluid'>
+			 <div class='navbar-header'>
+				<button type='button' class='navbar-toggle' data-toggle='collapse' data-target='.navbar-responsive-collapse'>
+					<span class='icon-bar'></span>
+					<span class='icon-bar'></span>
+					<span class='icon-bar'></span>
+				</button>
+				<div class='input-group'>
+					<a class='navbar-brand ' href='http://ics.actonhighschool.ca/2016-2017/bak5b557/'><span class='glyphicon glyphicon-home'></span></a>
+				</div>
+			</div>
+			<div class='navbar-collapse collapse navbar-responsive-collapse'>
+				<ul class='nav navbar-nav'>
+				</ul>
+				<ul class='nav navbar-nav navbar-right'>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div class='container'>
+		<div class='well well-sm'>
+			<h1 class='text-center'>
+				Danny Devito: The Game
+			</h1>
+		</div>
+		<div class='jumbotron'>
+			<div class='row text-center'>
+				<div class='col-md-6'>
+					<div class='game'>
+						<div id='output' class='score'></div>
+						<div class='heartgroup'>
+							<div id='heart1' class='heartfull'></div>
+							<div id='heart2' class='heartfull'></div>
+							<div id='heart3' class='heartfull'></div>
+						</div>
+						<div id='box' class='box'></div>
+						<div class='obstacleGroup'>
+							<div id='obstacle1' class='obstacle spin'></div>
+							<div id='obstacle2' class='obstacle spin'></div>
+							<div id='obstacle3' class='obstacle spin'></div>
+						</div>
+					</div>
+				</div>
+				<div class='col-md-6'>
+					<div class='col-md-12 text-center'>
+						<h3><b>Leaderboards</b></h3>
+						<hr>
+						<table class='table table-hover'>
+							<thead class='text-right'>
+								<th align='right'>Score</th>
+								<th align='right'>Player Name</th>
+								<th>Difficulty</th>
+								<th align='right'>Date</th>
+							</thead>
+							<tbody id='dynamicTable'>
+							
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+			<div class='row text-center'>
+				<div class='col-md-6'>
+					<button type='button' class='btn btn-block btn-raised btn-info' id='btn'>Start</button>
+				</div>
+				<div class='col-md-6'>
+					<div class='btn-group btn-group-justified btn-group-raised'>
+								<a class='btn' href="javascript:void(0)" id='easy'>Easy</a>
+
+								<a class='btn' href="javascript:void(0)" id='medium'>Medium</a>
+
+								<a class='btn' href="javascript:void(0)"  id='hard'>Hard</a>	
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="modal fade" id='myModal'>
+	  <div class="modal-dialog" role="document">
+		<div class="modal-content">
+		  <div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+			  <span aria-hidden="true">&times;</span>
+			</button>
+			<h4 id="title" class="modal-title"></h4>
+		  </div>
+		  <div id='message' class="modal-body">
+		  </div>
+		  <div class="modal-footer">
+			<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+		  </div>
+		</div><!-- /.modal-content -->
+	  </div><!-- /.modal-dialog -->
+	</div><!-- /.modal -->
+	
+	<script>
+	  window.page = window.location.hash || "#about";
+
+	  $(document).ready(function () {
+	    if (window.page != "#about") {
+	      $(".menu").find("li[data-target=" + window.page + "]").trigger("click");
+	    }
+	  });
+
+	  $(window).on("resize", function () {
+	    $("html, body").height($(window).height());
+	    $(".main, .menu").height($(window).height() - $(".header-panel").outerHeight());
+	    $(".pages").height($(window).height());
+	  }).trigger("resize");
+
+	  $(".menu li").click(function () {
+	    // Menu
+	    if (!$(this).data("target")) return;
+	    if ($(this).is(".active")) return;
+	    $(".menu li").not($(this)).removeClass("active");
+	    $(".page").not(page).removeClass("active").hide();
+	    window.page = $(this).data("target");
+	    var page = $(window.page);
+	    window.location.hash = window.page;
+	    $(this).addClass("active");
+
+
+	    page.show();
+
+	    var totop = setInterval(function () {
+	      $(".pages").animate({scrollTop: 0}, 0);
+	    }, 1);
+
+	    setTimeout(function () {
+	      page.addClass("active");
+	      setTimeout(function () {
+	        clearInterval(totop);
+	      }, 1000);
+	    }, 100);
+	  });
+
+	  function cleanSource(html) {
+	    var lines = html.split(/\n/);
+
+	    lines.shift();
+	    lines.splice(-1, 1);
+
+	    var indentSize = lines[0].length - lines[0].trim().length,
+	        re = new RegExp(" {" + indentSize + "}");
+
+	    lines = lines.map(function (line) {
+	      if (line.match(re)) {
+	        line = line.substring(indentSize);
+	      }
+
+	      return line;
+	    });
+
+	    lines = lines.join("\n");
+
+	    return lines;
+	  }
+
+	  $("#opensource").click(function () {
+	    $.get(window.location.href, function (data) {
+	      var html = $(data).find(window.page).html();
+	      html = cleanSource(html);
+	      $("#source-modal pre").text(html);
+	      $("#source-modal").modal();
+	    });
+	  });
+	</script>
+
+	<!-- Twitter Bootstrap -->
+	<script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/js/bootstrap.min.js"></script>
+
+	<!-- Material Design for Bootstrap -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-material-design/0.5.9/js/material.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-material-design/0.5.9/js/ripples.min.js"></script>
+	<script>
+	  $.material.init();
+	</script>
+
+
+	<!-- Sliders -->
+	<script src="//cdnjs.cloudflare.com/ajax/libs/noUiSlider/6.2.0/jquery.nouislider.min.js"></script>
+
+	<!-- Dropdown.js -->
+	<script src="https://cdn.rawgit.com/FezVrasta/dropdown.js/master/jquery.dropdown.js"></script>
+	<script>
+	$(document).ready(function() {
+	        $(".select").dropdown({"optionClass": "withripple"});
+	      });
+	      $().dropdown({autoinit: "select"});
+	</script>
+	<?mysql_close($db);?>
+	</body>
+</html>
