@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>Jquery Game</title>
+		<title>Fruit Basket</title>
 	  <meta charset="utf-8">
 	  <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
@@ -13,7 +13,7 @@
 	  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
 	  <!-- Bootstrap -->
-	  <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+	  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
 
 	  <!-- Bootstrap Material Design -->
 
@@ -22,7 +22,7 @@
 
 
 	  <!-- Dropdown.js -->
-	  <link href="//cdn.rawgit.com/FezVrasta/dropdown.js/master/jquery.dropdown.css" rel="stylesheet">
+	  <link href="https://cdn.rawgit.com/FezVrasta/dropdown.js/master/jquery.dropdown.css" rel="stylesheet">
 	  <!-- jQuery -->
   		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 		<style>
@@ -118,7 +118,7 @@
 		}
 		</style>
 	</head>
-	<?include("connectToDB.inc.php");?>
+	<?//include("connectToDB.inc.php");?>
 	<body>
 	<script>
 	//move trashbin !
@@ -139,19 +139,19 @@
 
 		$(document).ready(function(){
 
-			function modal(data){
-				if(data.confirm=="true"){
-					 $('#myModal').modal('show');
-					$("#message").html("<p>" + data.message + "</p>");
-					$("#title").html("<h2 class='text-success'>Entry Has Been Submitted</h2>");
-				}
-			}
+			// function modal(data){
+			// 	if(data.confirm=="true"){
+			// 		 $('#myModal').modal('show');
+			// 		$("#message").html("<p>" + data.message + "</p>");
+			// 		$("#title").html("<h2 class='text-success'>Entry Has Been Submitted</h2>");
+			// 	}
+			// }
 
-			function dynamicTable(){
-				$("#dynamicTable").load("dynamicTable.php");
-			}	
+			// function dynamicTable(){
+			// 	$("#dynamicTable").load("dynamicTable.php");
+			// }	
 
-			dynamicTable();
+			// dynamicTable();
 
 			function easy(){
 				$('#easy').on('click', function(){
@@ -288,22 +288,22 @@
 									$("#title").html("<h2 class='text-center text-success'>Submit Your Score?</h2>");
 									$('#message').html(form);
 
-									$("#leaderboard").submit(function(e){
-										e.preventDefault();
-										$.ajax({
-											url:"data.php",
-											method: "POST",
-											data:$('#leaderboard').serialize(),
-											dataType:'json',
-											success: function(data){
-												setTimeout(function(){
-													console.log('success');	
-													modal(data);		
-													dynamicTable();	
-												},200);
-											}
-										});
-									});
+									// $("#leaderboard").submit(function(e){
+									// 	e.preventDefault();
+									// 	$.ajax({
+									// 		url:"data.php",
+									// 		method: "POST",
+									// 		data:$('#leaderboard').serialize(),
+									// 		dataType:'json',
+									// 		success: function(data){
+									// 			setTimeout(function(){
+									// 				console.log('success');	
+									// 				modal(data);		
+									// 				dynamicTable();	
+									// 			},200);
+									// 		}
+									// 	});
+									// });
 
 									$('#btn').removeAttr("disabled");		
 									clearInterval(gameLoop);
@@ -320,8 +320,10 @@
 			}
 	
 			function checkCollision(){
-				if (($("#box").position().left + $("#box").width())  >= $($obstacle).position().left && $("#box").position().left <= ($($obstacle).position().left + $($obstacle).width())
-					&& $("#box").position().top >= ($($obstacle).position().top - $("#box").height())  && $("#box").position().top <= ($($obstacle).position().top  + $($obstacle).height())) {
+				if (($("#box").position().left + $("#box").width())  >= $($obstacle).position().left && 
+					$("#box").position().left <= ($($obstacle).position().left + $($obstacle).width()) &&
+					$("#box").position().top >= ($($obstacle).position().top - $("#box").height())  && 
+					$("#box").position().top <= ($($obstacle).position().top  + $($obstacle).height())) {
 					score = "true";
 					point = point + 100;
 				}
@@ -401,7 +403,7 @@
 	<div class='container'>
 		<div class='well well-sm'>
 			<h1 class='text-center'>
-				Danny Devito: The Game
+				Fruit Basket
 			</h1>
 		</div>
 		<div class='jumbotron'>
@@ -549,7 +551,7 @@
 	</script>
 
 	<!-- Twitter Bootstrap -->
-	<script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/js/bootstrap.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/js/bootstrap.min.js"></script>
 
 	<!-- Material Design for Bootstrap -->
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-material-design/0.5.9/js/material.js"></script>
@@ -560,7 +562,7 @@
 
 
 	<!-- Sliders -->
-	<script src="//cdnjs.cloudflare.com/ajax/libs/noUiSlider/6.2.0/jquery.nouislider.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/6.2.0/jquery.nouislider.min.js"></script>
 
 	<!-- Dropdown.js -->
 	<script src="https://cdn.rawgit.com/FezVrasta/dropdown.js/master/jquery.dropdown.js"></script>
@@ -570,6 +572,6 @@
 	      });
 	      $().dropdown({autoinit: "select"});
 	</script>
-	<?mysql_close($db);?>
+	<?//mysql_close($db);?>
 	</body>
 </html>
